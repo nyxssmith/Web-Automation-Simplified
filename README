@@ -1,29 +1,35 @@
 Description:
     A way to make web automation with selenium simpler, by dynamically finding x_path of element by name
     currently a work in progress
-    
+
 
 
 
 
 
 To test if element is present:
-  {"element text":"present"},
-  {"element id":["by_id","present"]},
-  {"element text":["by_string","present"]},
-  {"element xpath":["by_xpath","present"]},
+    {"element text":"present"},
+    {"element id":["by_id","present"]},
+    {"element text":["by_string","present"]},
+    {"element xpath":["by_xpath","present"]},
+    {"element css selector":["by_css_selector","present"]},
+
 
 To click on an element:
     Clicking on an element will also check that it is present before clicking
-  {"element text":"click"},
-  {"element id":["by_id","click"]},
-  {"element text":["by_string","click"]},
-  {"element xpath":["by_xpath","click"]},
+    {"element text":"click"},
+    {"element id":["by_id","click"]},
+    {"element text":["by_string","click"]},
+    {"element xpath":["by_xpath","click"]},
+    {"element css selector":["by_css_selector","click"]},
+
 
 To send keys:
     {"element id":["by_id","keys","text to send as keys"]},
     {"element text":["by_string","keys","text to send as keys"]},
     {"element xpath":["by_xpath","keys","text to send as keys"]},
+    {"element css selector":["by_css_selector","keys","text to send as keys"]},
+
     put "CODE:UP","CODE:DOWN","CODE:ENTER" to send up, down or enter keys (for dropdown navigation)
 
 To upload a file via a browse for file button:
@@ -31,22 +37,24 @@ To upload a file via a browse for file button:
 
 
 To test if element is not_present:
-  {"element text":"not_present"},
-  {"element id":["by_id","not_present"]},
-  {"element text":["by_string","not_present"]},
-  {"element xpath":["by_xpath","not_present"]},
+    {"element text":"not_present"},
+    {"element id":["by_id","not_present"]},
+    {"element text":["by_string","not_present"]},
+    {"element xpath":["by_xpath","not_present"]},
+    {"element css selector":["by_css_selector","not_present"]},
+
 
 To test the url is correct:
-  {"url including https://....":"url"},
+    {"url including https://....":"url"},
 
 To go to a url:
-  {"url including https://....":"goto"},
+    {"url including https://....":"goto"},
 
 
 Waiting:
-  {"wait":"#"} where # is the number of seconds to wait
-  {"element text":"wait_until_not_present"},
-  {"element text":"wait_until_present"},
+    {"wait":"#"} where # is the number of seconds to wait
+    {"element text":"wait_until_not_present"},
+    {"element text":"wait_until_present"},
 
 To go back a page:
     {"back":"back"},

@@ -197,11 +197,19 @@ class tests:
             elif action_list[0] == "by_xpath":
                 element = driver.find_element_by_xpath(element_string)
                 action = action_list[1]
+            elif action_list[0] == "by_css_path":
+                element = None
+                action = action_list[1]
+            elif action_list[0] == "by_css_selector":
+                element = driver.find_elements_by_css_selector(element_string)
+                action = action_list[1]
         else:
             element = self.actions.get_body_element_by_element_string(element_string, driver)
 
         print("action is", action, "for element", element_string)
 
+        if type(element) == type([]):
+            element = element[0]
 
         if action == "click":
             self.test_click(driver, element,element_string)
