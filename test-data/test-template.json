@@ -17,3 +17,17 @@ ending
   ]
 }
 ####
+
+
+
+{
+      "/html/body/div[1]/main/article/section[2]/div[2]/div/section/div/div/div[5]/a": ["by_xpath","click"]
+    },
+{
+      "/html/body/div[1]/main/article/section[2]/div[2]/div/section/div/div/div[5]/a": ["by_xpath","click"]
+    },
+
+/html/body/div[1]/main/article/section[2]/div[2]/div/section/div/div/div[5]/a
+/html/body/div[1]/main/article/section[2]/div[2]/div/section/div/div/div[1]/section/div[1]/div[1]
+html/body/div/header/div/div/div/div/div/div/a/img/main/article/section/div/img/div/div/div/div/div/div/div/div/div/p/strong/section/div/div/section/div/div/div/figure/div/img/section/div/div
+/html/body/div[1]/main/article/section[2]/div[2]/div/section/div/div/div[1]/figure/div/img
