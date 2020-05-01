@@ -17,8 +17,8 @@ test_actions = actions()
 test_tests = tests(test_actions)
 
 
-driver = test_actions.create_driver()
-test_list = test_tests.get_test_list("../test-data/JSONFILE")
+driver = test_actions.create_driver(chrome=False)
+test_list = test_tests.get_test_list("CWD/test-data/JSONFILE")
 for item in test_list:
     element = list(item.keys())[0]
     action = item[list(item.keys())[0]]
@@ -32,6 +32,6 @@ for test in test_data:
     print(("Test_"+test.replace("-","_")[0].upper()+test.replace("-","_")[1:]).replace(".json",".py"))
     test_name = (("Test_"+test.replace("-","_")[0].upper()+test.replace("-","_")[1:]).replace(".json",".py"))
     print(test_name in py_tests)
-    python_content = placeholder_python.replace("JSONFILE",test)
+    python_content = placeholder_python.replace("JSONFILE",test).replace("CWD",os.getcwd())
     with open("tests/"+test_name,"w")as test_python:
         test_python.write(python_content)
