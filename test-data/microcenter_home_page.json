@@ -1,8 +1,8 @@
 {
-  "test":[
-  {"https://www.microcenter.com/":"goto"},
-  {"im here":"print"},
-  {"https://www.microcenter.com/":"url"},
-  {"Refurbished Deals":"present"}
+  "test": [
+    { "https://www.microcenter.com/": "goto" },
+    { "tcb001a": ["by_id", "present"] },
+    { "/html/body/main/article/div[2]/h2": ["by_xpath", "present"] },
+    { "MOST POPULAR": "present" }
   ]
 }

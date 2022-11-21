@@ -5,7 +5,7 @@ test_actions = actions()
 test_tests = tests(test_actions)
 
 
-driver = test_actions.create_driver(chrome=False)
+driver = test_actions.create_driver(chrome=True)
 test_list = test_tests.get_test_list("/home/nick/Git/Web-Automation-Simplified/test-data/microcenter_home_page.json")
 for item in test_list:
     element = list(item.keys())[0]

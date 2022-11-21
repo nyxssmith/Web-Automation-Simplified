@@ -1,0 +1,23 @@
+version: "3"
+services:
+  tests:
+    image: web-automation-simplified
+    build: .
+    depends_on:
+      - chrome
+    volumes:
+    - /home/nyx/Git/Web-Automation-Simplified/debug:/tests/debug
+
+  chrome:
+    image: selenium/standalone-chrome:106.0
+    shm_size: 2gb
+    environment:
+      - SE_EVENT_BUS_PUBLISH_PORT=4442
+      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+      - SE_NODE_OVERRIDE_MAX_SESSIONS=true
+      - SE_NODE_MAX_SESSIONS=4
+    ports:
+      - 4442
+      - 4443
+      - 4444
+      - 7900

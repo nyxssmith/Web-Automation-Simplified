@@ -2,6 +2,10 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+
+from html.parser import HTMLParser
+
 from collections import OrderedDict
 from time import sleep
 import re
@@ -12,6 +16,74 @@ import os
 # the actions that tests will use
 class actions:
 
+    class MyHTMLParser(HTMLParser):
+
+        found_target_xpath = ""
+
+        ignored_tags = ["meta","img","input","link"]
+
+        div_depth_index  = dict()
+
+        div_index = 1
+        div_index = 1
+
+        tag_list = []
+
+        target = ""
+
+        working = True
+        def handle_starttag(self, tag, attrs):
+            print("Encountered a start tag:", tag)
+            if self.working:
+                if tag not in self.ignored_tags:
+                    self.tag_list.append(tag)
+                    if "div" in tag:
+                        div_depth = self.tag_list.count("div")
+                        
+                        if div_depth in list(self.div_depth_index.keys()):
+                            self.div_depth_index[div_depth] +=1
+                        else:
+                            self.div_depth_index[div_depth] =1
+
+        def handle_endtag(self, tag):
+            print("Encountered an end tag :", tag)
+            if self.working:
+                self.tag_list.reverse()
+                try:
+                    if "div" in tag:
+                        div_depth = self.tag_list.count("div")
+                        if div_depth in list(self.div_depth_index.keys()):
+                            self.div_depth_index[div_depth] -=1
+                        else:
+                            self.div_depth_index[div_depth] =1
+                    self.tag_list.remove(tag)
+
+                except:
+                    print("oops")
+                    pass
+                self.tag_list.reverse()
+
+        def handle_data(self, data):
+            print("Encountered some data  :", data)
+            if self.working:
+                if self.target in data:
+                    print("DING!",self.tag_list)
+                    self.create_found_target_path()
+                    print(self.div_depth_index)
+                    print(self.found_target_xpath)
+                    #self.close()
+                    #exit(0)
+        
+        def create_found_target_path(self):
+            self.found_target_xpath = ""
+            div_depth = 0
+            for tag in self.tag_list:
+                self.found_target_xpath += "/"+tag
+                #if "div" in tag:
+                #    div_depth +=1
+                #    self.found_target_xpath +="["+str(self.div_depth_index[div_depth])+"]"
+            self.working = False
+
     def get_body_element_by_element_string(self, element_string, driver):
         # get the xpath for an element (fuzzy xpath)
         x_path_element = self.get_xpath_as_string_for_body_element(element_string, driver)
@@ -21,12 +93,14 @@ class actions:
 
         # as xpath donest factor in lists, when quesryying it, it can return multple elements,
         # such as all parts of a dropdown
-        element_possiblities = driver.find_elements_by_xpath(x_path_element)
-        # print(element_possiblities)
+        #element_possiblities = driver.find_elements_by_xpath(x_path_element)
+        element_possiblities = driver.find_elements(By.XPATH, x_path_element)
+
+        print("possibilties",element_possiblities)
         # find the correct element by matching the text of the elements
         for element in element_possiblities:
-            # print(element.text)
-            if element_string == element.text:
+            print("possibility",element.text)
+            if element_string in element.text:
                 return element
         # if xpath was invalid (say a placeholder etc) or element not found, return None
         return None
@@ -51,17 +125,48 @@ class actions:
         verbose = True
 
         # get body onwards with no breaks
+        """
         src = driver.page_source[driver.page_source.find("</head>") + 7:].replace("\t", "").replace("><",
                                                                                                     ">\n<").replace(
             "> <", ">\n<")
-        #print(src)
+        """
 
+        # get page source
+        src = driver.page_source
         src = src.encode('ascii', 'ignore').decode('ascii')
+        
+        parser = self.MyHTMLParser()
+        parser.target = element_string
+        parser.feed(src)
+
+        print("parsed xpath "+parser.found_target_xpath)
+        #exit(0)
+        return parser.found_target_xpath
+
+        exit(0)
+
+        """
+        //*[@id="content"]/div[2]/h2
+        /html/body/main/article/div[2]/h2
+        """
+        print(len(src))
+        print("getting xpath from string")
+        
+        
+
+        #
+        with open("debug/src.html","w") as h:
+            h.write(src)
+        
+        #print(src)
         print(str(src).find(element_string))
+
         element_string_location = str(src).find(element_string)
         element_string_location_end = str(src)[element_string_location:].find('>') + element_string_location+1
-        print(element_string_location)
-        print(element_string_location_end)
+        print("string location ",element_string_location)
+        
+        print("string location end",element_string_location_end)
+        exit(0)
         print(str(src)[:element_string_location_end])
         #print(str(src).find(element_string))
         #print(str(src)[:str(src).find(element_string)])
@@ -159,113 +264,19 @@ class actions:
 
         return "/".join(xpath_list)
 
-    def get_xpath_as_string_for_body_element_old(self, element_string, driver):
-        verbose = True
-
-        # get body onwards with no breaks
-        src = driver.page_source[driver.page_source.find("</head>") + 7:].replace("\t", "").replace("><",
-                                                                                                    ">\n<").replace(
-            "> <", ">\n<")
-
-        # get all index of the occurance of string, in case its search or somehting commong
-
-        # make the element str regex safe
-        regex_safe_element_string = element_string.replace("(", "\(").replace(")", "\)").replace(".", "\.").replace("+",
-                                                                                                                    "\+").replace(
-            ">", "\>").replace("<", "\<").replace("-", "\-")
-        # get all indexes when the string shows up, like "search" and "search for"
-        list_of_index_of_element_strings = [m.start() for m in re.finditer(regex_safe_element_string, src)]
-        # list_of_index_of_element_strings = [m.start() for m in re.finditer('(?=%s)(?!.{1,%d}%s)' % (regex_safe_element_string, len(regex_safe_element_string)-1, regex_safe_element_string), src)]
-        # print(list_of_index_of_element_strings)
-
-        # if the list is epmpy, elementi isnt found, so retrun placeholder
-        if list_of_index_of_element_strings == []:
-            return "html/err"
-        # for each possible index
-        # print("list of possible indices",list_of_index_of_element_strings)
-        for index in list_of_index_of_element_strings:
-
-            # check that right after the target string, is a <
-            # if its a space, it could be "search for" rather than "search" which is wrong
-            descion_string = src[index:index + len(element_string) + 20]
-            # print("d str 1",descion_string)
-
-            descion_string = descion_string.replace("\n", "").replace(" <", "<")
-            # if its decied to be correct, retrun corect one
-            # print("d str", descion_string)
-            # print("index ", index)
-            if descion_string[descion_string.find(element_string) + len(element_string):][0] == "<":
-                index_of_element_string = index
-                break
-        # get the html, and cut it off at the string we want
-        up_to_element_string = src[:index_of_element_string]
-        # split on new lines
-        split = up_to_element_string.split("\n")
-        split.remove('')
-
-        parent_tree = []
-        for line in split:
-            if line != '':
-                if verbose: print("-=====================")
-                if verbose: print("starting p tree", parent_tree)
-
-                # src_dict[counter]["line"] = line
-                regex_result_open = re.findall('\<(.*?)\ ', line)
-
-                regex_result_open_ends = re.findall('\<(.*?)>', line)
-                # print("rw oepn ends",regex_result_open_ends)
-
-                for result in regex_result_open_ends:
-                    # print(result)
-                    # print("/" in result)
-                    # print(" " in result)
-                    if (not ("/" in result)) and (not (" " in result)):
-                        # print("keep ",result)
-                        regex_result_open.append(result)
-
-                # print("r oepn ends",regex_result_open_ends)
-
-                # add all opened tags to the parent tree
-                # dont add input, br or invalid into the parent list, they have been dealt with elsewhere
-                for result in regex_result_open:
-                    if result != 'input' and result != 'br' and result != 'hr' and (
-                            not ((">" or "<") in result) and "--" not in result):
-                        parent_tree.append(result)
-
-                regex_result_close = re.findall('</(.*?)\>', line)
-                # check if a link was added to the close section, adn rm it, as its a mistake
-                for result in regex_result_close:
-                    if (line[line.find(result) - 7:line.find(result)] == "href=\"/"):
-                        regex_result_close.remove(result)
-                    if result == '"' or result == '/"':
-                        regex_result_close.remove(result)
-                # remove any closed parts from the parent tree
-                for result in regex_result_close:
-                    if result == parent_tree[-1]:
-                        parent_tree.pop()
-
-                if verbose: print("line", line)
-
-                if verbose: print("open", regex_result_open)
-                if verbose: print("close", regex_result_close)
-                if verbose: print("end p tree", parent_tree)
-
-                if verbose: print("------------------------\n\n")
-        if verbose: print("final p treee", parent_tree)
-
-        base_list = ["html"]
-        xpath_list = base_list + parent_tree
-        if verbose: print("xpath list", xpath_list)
-
-        return "/".join(xpath_list)
-
 
     # make webdriver object
-    def create_driver(self, chrome=False):
+    def create_driver(self, chrome=True):
         if chrome:
-            chrome_options = Options()
-            chrome_options.add_argument("--headless")
-            driver = webdriver.Chrome(chrome_options=chrome_options)
+            #chrome_options = Options()
+            #chrome_options.add_argument("--headless")
+            #driver = webdriver.Chrome(chrome_options=chrome_options)
+            options = webdriver.ChromeOptions()
+            options.add_argument('--ignore-ssl-errors=yes')
+            options.add_argument('--ignore-certificate-errors')
+            driver = webdriver.Remote(
+            command_executor='http://chrome:4444/wd/hub',options=options)
+
         else:
             driver = webdriver.Firefox()
         return driver
@@ -307,13 +318,15 @@ class tests:
             action_list = list(action)
             print("action list", action_list)
             if action_list[0] == "by_id":
-                element = driver.find_element_by_id(element_string)
+                element = driver.find_element(By.ID,element_string)
                 action = action_list[1]
             elif action_list[0] == "by_string":
-                element = self.actions.get_body_element_by_element_string(element_string, driver)
+                #element = self.actions.get_body_element_by_element_string(element_string, driver)
+                element = driver.find_element(By.PARTIAL_LINK_TEXT,element_string)
                 action = action_list[1]
             elif action_list[0] == "by_xpath":
-                element = driver.find_element_by_xpath(element_string)
+                #element = driver.find_element_by_xpath(element_string)
+                element = driver.find_element(By.XPATH,element_string)
                 action = action_list[1]
             elif action_list[0] == "by_css_path":
                 element = None
@@ -322,7 +335,7 @@ class tests:
                 element = driver.find_elements_by_css_selector(element_string)
                 action = action_list[1]
         elif action == "url":
-            print("testing url matches")
+            #print("testing url matches")
             self.test_url(driver, element_string)
         elif action == "goto":
             self.test_goto(driver, element_string)
@@ -333,14 +346,23 @@ class tests:
         elif element_string == "wait":
             self.test_wait(action)
         else:
-            element = self.actions.get_body_element_by_element_string(element_string, driver)
+            print("in else")
+            
+            # find the xpath for the text and then find y xpath
 
+            
+            
+            # treat as same as by string by default
+            #element = driver.find_element(By.PARTIAL_LINK_TEXT,element_string)
+            element = self.actions.get_body_element_by_element_string(element_string, driver)
+            print("elemenntnt")
             if type(element) == type([]):
                 element = element[0]
 
             if action == "click":
                 self.test_click(driver, element, element_string)
             elif action == "present":
+                print("resentt")
                 self.test_present(element, element_string)
             elif action == "keys":
                 print("sending keys", action_list[2], "to", element)
@@ -354,11 +376,10 @@ class tests:
             elif action == "upload":
                 self.test_upload(element, action_list[2])
             else:
-
                 if element_string == "wait":
                     self.test_wait(action)
 
-        print("action is", action, "for element", element_string)
+        print("action done", action, "for element", element_string)
 
     # test actions
 

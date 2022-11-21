@@ -1,5 +1,10 @@
 from functions import actions,tests
 import os
+import time
+
+# wait 10s for chrome startup
+time.sleep(10)
+
 
 test_actions = actions()
 test_tests = tests(test_actions)
@@ -24,15 +29,15 @@ for test in list_of_tests:
         json_path = os.path.join(os.path.join("..","test-data"),test)
 
         driver = test_actions.create_driver()
-        test_actions.login_to_typecore(driver)
+        #test_actions.login_to_typecore(driver)
         test_list = test_tests.get_test_list(json_path)
         print("test list",test_list)
         for item in test_list:
+            print("start item")
             cur_step["step"] = test_list.index(item)+1
             cur_step["info"] = "Expected "+str(list(item.keys())[0])+" to be/type "+str(list(item.values())[0])
             element = list(item.keys())[0]
             action = item[list(item.keys())[0]]
-
             test_tests.do_test_action(driver, element, action)
         driver.close()
         print("==============================")

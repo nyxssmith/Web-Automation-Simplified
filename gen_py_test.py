@@ -17,7 +17,7 @@ test_actions = actions()
 test_tests = tests(test_actions)
 
 
-driver = test_actions.create_driver(chrome=False)
+driver = test_actions.create_driver(chrome=True)
 test_list = test_tests.get_test_list("CWD/test-data/JSONFILE")
 for item in test_list:
     element = list(item.keys())[0]
